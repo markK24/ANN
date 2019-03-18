@@ -13,15 +13,42 @@ import java.util.Scanner;
 public class FicSearch {
     public static void main(String[] args) {
         Scanner r = new Scanner(System.in);
-        int i = 0;
         System.out.print("Id начала поиска: ");
         int id = r.nextInt() - 1;
+        System.out.print("Id начала индексации: ");
+        int i = r.nextInt();
         System.out.print("Кол-во фанфиков: ");
-        int count = r.nextInt();
-        System.out.print("Cookies аккаунта для скачивания 18+ фанфиков: ");
-        String cookies = r.next();
+        int count = r.nextInt() + i;
+        System.out.print("Загрузить cookies? [y/n] ");
+        String cookies = "";
+        if (r.next().equals("y")) {
+            try {
+                cookies = new String(Files.readAllBytes(new File("cookies.conf").toPath()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.print("Cookies аккаунта для скачивания 18+ фанфиков: ");
+            cookies = r.next();
+            System.out.print("Сохранить cookies? [y/n] ");
+            if (r.next().equals("y")) {
+                File conf = new File("cookies.conf");
+                PrintWriter writer = null;
+                try {
+                    writer = new PrintWriter(conf);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                assert writer != null;
+                writer.print(cookies);
+                writer.flush();
+                writer.close();
+            }
+        }
+        System.out.print("Фильтр по жанру: ");
+        String jenre = r.next();
         r.close();
-        while (i < count) {
+       while (i < count) {
             id++;
             ArchiveInputStream archive = null;
             OutputStream file = null;
@@ -45,7 +72,7 @@ public class FicSearch {
                 while (!x.startsWith("Жанр")) {
                     x = r.nextLine();
                 }
-                if (!x.contains("PWP")) {
+                if (!x.contains(jenre)) {
                     r.close();
                     Files.deleteIfExists(new File("trainingData/buffer.txt").toPath());
                     continue;
@@ -65,16 +92,23 @@ public class FicSearch {
                 }
                 r.useDelimiter("\\s");
                 StringBuilder s = new StringBuilder();
-                while (r.hasNextLine()) {
-                    s.append(r.nextLine()).append(" ");
+                x = "";
+                while (r.hasNextLine() && !(x.startsWith("Страница фанфика"))) {
+                    s.append(x).append("\n");
+                    x = r.nextLine();
                 }
                 r.close();
                 if (split(s.deleteCharAt(s.length() - 1).toString()).length < 5000) {
                     i++;
                     Files.deleteIfExists(new File(String.format("trainingData/sample%d.txt", i)).toPath());
                     System.gc();
-                    File f  = new File(String.format("trainingData/sample%d.txt", i));
-                    Files.copy(new File("trainingData/buffer.txt").toPath(), f.toPath());
+                    PrintWriter writer = new PrintWriter(new File(String.format("trainingData/sample%d.txt", i)));
+                    for (String line :
+                            s.toString().split("\n")) {
+                        writer.println(line);
+                    }
+                    writer.flush();
+                    writer.close();
                 }
                 Files.delete(new File("trainingData/buffer.txt").toPath());
             } catch (IOException | ArchiveException e) {

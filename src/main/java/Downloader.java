@@ -20,7 +20,7 @@ public class Downloader {
 				.build();
 		try {
 			HttpGet get = new HttpGet(url.toURI()); // we're using GET but it could be via POST as well
-			get.addHeader("Cookie", cookies);
+			get.addHeader("Cookie", "pf=" + cookies);
 			File downloaded = httpclient.execute(get, new FileDownloadResponseHandler(dstFile));
 			return downloaded;
 		} catch (Exception e) {
