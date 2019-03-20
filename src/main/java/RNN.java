@@ -117,6 +117,7 @@ public class RNN {
         LinkedHashSet<String> LEARNSTRING_STRINGS = new LinkedHashSet<>(Arrays.asList(concat(learnstrings)));
         LEARNSTRING_STRINGS.add("{endtext}");
         LEARNSTRING_WORDS_LIST.addAll(LEARNSTRING_STRINGS);
+        LEARNSTRING_STRINGS = null;
 
         // some common parameters
         NeuralNetConfiguration.Builder builder = new NeuralNetConfiguration.Builder();
@@ -131,7 +132,7 @@ public class RNN {
         // first difference, for rnns we need to use LSTM.Builder
         for (int i = 0; i < HIDDEN_LAYER_CONT; i++) {
             LSTM.Builder hiddenLayerBuilder = new LSTM.Builder();
-            hiddenLayerBuilder.nIn(i == 0 ? LEARNSTRING_STRINGS.size() : HIDDEN_LAYER_WIDTH);
+            hiddenLayerBuilder.nIn(i == 0 ? LEARNSTRING_WORDS_LIST.size() : HIDDEN_LAYER_WIDTH);
             hiddenLayerBuilder.nOut(HIDDEN_LAYER_WIDTH);
             // adopted activation function from LSTMCharModellingExample
             // seems to work well with RNNs
@@ -145,7 +146,7 @@ public class RNN {
         // this is required for our sampleFromDistribution-function
         outputLayerBuilder.activation(Activation.SOFTMAX);
         outputLayerBuilder.nIn(HIDDEN_LAYER_WIDTH);
-        outputLayerBuilder.nOut(LEARNSTRING_STRINGS.size());
+        outputLayerBuilder.nOut(LEARNSTRING_WORDS_LIST.size());
         listBuilder.layer(HIDDEN_LAYER_CONT, outputLayerBuilder.build());
 
         // finish builder
@@ -164,8 +165,8 @@ public class RNN {
          */
         // create input and output arrays: SAMPLE_INDEX, INPUT_NEURON,
         // SEQUENCE_POSITION
-        INDArray input = Nd4j.zeros(4, LEARNSTRING_WORDS_LIST.size(), HIDDEN_LAYER_WIDTH);
-        INDArray labels = Nd4j.zeros(4, LEARNSTRING_WORDS_LIST.size(), HIDDEN_LAYER_WIDTH);
+        INDArray input = Nd4j.zeros(learnstrings.length, LEARNSTRING_WORDS_LIST.size(), HIDDEN_LAYER_WIDTH);
+        INDArray labels = Nd4j.zeros(learnstrings.length, LEARNSTRING_WORDS_LIST.size(), HIDDEN_LAYER_WIDTH);
         // loop through our sample-sentence
         for (int i = 0; i < learnstrings.length; i++) {
             String[] end = new String[HIDDEN_LAYER_WIDTH - learnstrings[i].length];
@@ -187,14 +188,14 @@ public class RNN {
 
         // some epochs
         int epoch = 1;
-        for (; epoch < 650; epoch++) {
+        for (; epoch < 400; epoch++) {
             System.out.println("Epoch " + epoch);
 
             // train the data
             net.fit(trainingData);
         }
 
-        for (; epoch <= 700; epoch++) {
+        for (; epoch <= 500; epoch++) {
 
             System.out.println("Epoch " + epoch);
 
