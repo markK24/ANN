@@ -14,38 +14,37 @@ import java.net.URL;
 
 public class Downloader {
 
-	public File download(URL url, File dstFile, String cookies) {
-		CloseableHttpClient httpclient = HttpClients.custom()
-				.setRedirectStrategy(new LaxRedirectStrategy()) // adds HTTP REDIRECT support to GET and POST methods 
-				.build();
-		try {
-			HttpGet get = new HttpGet(url.toURI()); // we're using GET but it could be via POST as well
-			get.addHeader("Cookie", "pf=" + cookies);
-			File downloaded = httpclient.execute(get, new FileDownloadResponseHandler(dstFile));
-			return downloaded;
-		} catch (Exception e) {
-			throw new IllegalStateException(e);
-		} finally {
-			IOUtils.closeQuietly(httpclient);
-		}
-	}
+    public File download(URL url, File dstFile, String cookies) {
+        CloseableHttpClient httpclient = HttpClients.custom()
+                .setRedirectStrategy(new LaxRedirectStrategy()) // adds HTTP REDIRECT support to GET and POST methods
+                .build();
+        try {
+            HttpGet get = new HttpGet(url.toURI()); // we're using GET but it could be via POST as well
+            get.addHeader("Cookie", "pf=" + cookies);
+            return httpclient.execute(get, new FileDownloadResponseHandler(dstFile));
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        } finally {
+            IOUtils.closeQuietly(httpclient);
+        }
+    }
 
-	static class FileDownloadResponseHandler implements ResponseHandler<File> {
+    static class FileDownloadResponseHandler implements ResponseHandler<File> {
 
-		private final File target;
+        private final File target;
 
-		public FileDownloadResponseHandler(File target) {
-			this.target = target;
-		}
+        public FileDownloadResponseHandler(File target) {
+            this.target = target;
+        }
 
-		@Override
-		public File handleResponse(HttpResponse response) throws IOException {
-			InputStream source = response.getEntity().getContent();
-			FileUtils.copyInputStreamToFile(source, this.target);
-			return this.target;
-		}
-		
-	}
+        @Override
+        public File handleResponse(HttpResponse response) throws IOException {
+            InputStream source = response.getEntity().getContent();
+            FileUtils.copyInputStreamToFile(source, this.target);
+            return this.target;
+        }
+
+    }
 
 
 }

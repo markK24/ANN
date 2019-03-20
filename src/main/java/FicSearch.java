@@ -2,6 +2,7 @@ import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.conn.HttpHostConnectException;
 
 import java.io.*;
 import java.net.URL;
@@ -19,6 +20,7 @@ public class FicSearch {
         int i = r.nextInt();
         System.out.print("Кол-во фанфиков: ");
         int count = r.nextInt() + i;
+        i--;
         System.out.print("Загрузить cookies? [y/n] ");
         String cookies = "";
         if (r.next().equals("y")) {
@@ -64,6 +66,7 @@ public class FicSearch {
 
                 if (Files.size(new File("trainingData/buffer.txt").toPath()) == 0) {
                     Files.deleteIfExists(new File("trainingData/buffer.txt").toPath());
+                    System.out.println("id = " + id);
                     continue;
                 }
 
@@ -72,6 +75,7 @@ public class FicSearch {
                 while (!x.startsWith("Жанр")) {
                     x = r.nextLine();
                 }
+                System.out.println("id = " + id + "; " + x);
                 if (!x.contains(jenre)) {
                     r.close();
                     Files.deleteIfExists(new File("trainingData/buffer.txt").toPath());
@@ -86,7 +90,7 @@ public class FicSearch {
                     continue;
                 }
                 r.useDelimiter("[^\r\n]");
-                while (!x.equals("\r\n\r\n\r\n\r\n\r\n")) {
+                while (!x.startsWith("\r\n\r\n\r\n\r\n\r\n") && r.hasNext()) {
                     r.skip("[^\r\n]*");
                     x = r.next();
                 }
@@ -111,6 +115,8 @@ public class FicSearch {
                     writer.close();
                 }
                 Files.delete(new File("trainingData/buffer.txt").toPath());
+            } catch (HttpHostConnectException | IllegalStateException e) {
+                id--;
             } catch (IOException | ArchiveException e) {
                 e.printStackTrace();
                 try {
@@ -124,7 +130,7 @@ public class FicSearch {
                 }
             }
 
-            System.gc();
+           System.gc();
         }
     }
 
