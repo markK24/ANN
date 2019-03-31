@@ -28,6 +28,8 @@ import java.util.*;
  *
  * @author Peter Grossmann
  */
+
+@Deprecated
 public class RNN {
 
     // define a sentence to learn.
@@ -107,7 +109,7 @@ public class RNN {
     private static final List<String> LEARNSTRING_WORDS_LIST = new ArrayList<>();
 
     // RNN dimensions
-    private static final int HIDDEN_LAYER_WIDTH = maxLength(learnstrings);
+    private static final int HIDDEN_LAYER_WIDTH = 50;
     private static final int HIDDEN_LAYER_CONT = 2;
     private static final Random rand = new Random(7894);
 
