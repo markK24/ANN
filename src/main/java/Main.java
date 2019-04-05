@@ -9,6 +9,7 @@ import tools.data.types.Text;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class Main {
@@ -38,19 +39,26 @@ public class Main {
             case 1:
                 network = new LSTM().build(LSTM.DefaultTextGenLSTMConfiguration(dictionary.getSize(), 100));
                 System.out.println();
-
-                System.out.println("Training...");
-                network.train(200, true, dictionary, texts);
-                System.out.println();
                 break;
             case 2:
                 System.out.println("Путь к файлу с моделью: ");
                 try {
+                    r.nextLine();
                     network = new LSTM().load(new File(r.nextLine()));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
+                System.out.print("Обучить сеть? [Y/n] ");
+                x = r.next().toLowerCase();
                 break;
+        }
+
+        if (x.equals("1") || x.equals("y")) {
+            System.out.print("Training... Epochs: ");
+            int epochs = r.nextInt();
+            network.train(epochs, true, dictionary, texts);
+            System.out.println();
         }
 
         System.out.print("Введите первое слово: (STOP для прерывания): ");
@@ -61,12 +69,19 @@ public class Main {
             words.add(x);
             while (!x.equals(texts[0].getTextEndString())) {
                 INDArray input = Nd4j.zeros(1, dictionary.getSize());
-                input.putScalar(new int[]{1, (int) dictionary.translateTo(x)}, 1);
+                try {
+                    input.putScalar(new int[]{0, dictionary.translateTo(x)}, 1);
+                } catch (NoSuchElementException e) {
+                    e.printStackTrace();
+                    break;
+                }
                 INDArray output = network.output(input);
                 x = String.valueOf(dictionary.translateFrom(Nd4j.getExecutioner().exec(new IMax(output), 1).getInt(0)));
                 words.add(x);
+                System.out.print(" " + x);
             }
-            System.out.println(new Text((String[]) words.toArray()).toString());
+            System.out.println();
+            System.out.println(new Text(words.toArray(new String[]{})).toString());
             System.out.println();
             System.out.print("Введите первое слово: (STOP для прерывания): ");
             x = r.next();

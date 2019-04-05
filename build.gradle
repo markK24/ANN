@@ -1,9 +1,11 @@
-plugins {
-    id 'java'
-}
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'java-library'
+
+mainClassName = 'Main'
 
 group 'ru.mark24'
-version '1.0-SNAPSHOT'
+version 'Pre2.0'
 
 sourceCompatibility = 1.8
 
@@ -11,9 +13,23 @@ repositories {
     mavenCentral()
 }
 
+jar {
+    baseName = 'Ficbot'
+    manifest {
+        attributes(
+                'Main-Class': 'Main'
+        )
+    }
+
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
     compile "org.deeplearning4j:deeplearning4j-core:1.0.0-beta3"
     compile "org.nd4j:nd4j-native-platform:1.0.0-beta3"
     compile 'org.apache.httpcomponents:httpclient:4.5.7'
+    compile "org.slf4j:slf4j-api:1.8.0-beta4"
+    compile "org.slf4j:slf4j-log4j12:1.8.0-beta4"
 }
